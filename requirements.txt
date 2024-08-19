@@ -1,0 +1,8 @@
+List of requirements
+
+Extensions:
+
+Flask
+SqlAlchemy
+Flask-Migrate
+db
