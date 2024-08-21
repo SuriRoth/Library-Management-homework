@@ -107,9 +107,66 @@ def addMember():
     return jsonify(newMember), 201
 
 
-
 @app.route('/members/<int:memberID>', methods=['DELETE'])
 def removeMember(memberID):
     global library
     library = [member for member in library if member.get('ID') != memberID]
     return '', 204
+
+
+@app.route('/members/<int:memberID>', methods=['GET'])
+def viewMember(memberID):
+    member = next((member for member in library if member.get('ID') == memberID), None)
+    if member:
+        return jsonify(member), 200
+    return jsonify({'error': 'Member not found'}), 404
+
+@app.route('/members/<int:memberID>', methods=['PUT'])
+def updateMember(memberID):
+    member = next((member for member in library if member.get('ID') == memberID), None)
+    if member:
+        updateData = request.get_json()
+        # Validate and update member details
+        member.update(updateData)
+        return jsonify(member), 200
+    return jsonify({'error': 'Member not found'}), 404
+    
+@app.route('/lend', methods=['POST'])
+def lendBook():
+    data = request.get_json()
+    ISBN = data.get('ISBN')
+    memberID = data.get('memberID')
+    book = next((book for book in library if book.get('ISBN') == ISBN), None)
+    member = next((member for member in library if member.get('ID') == memberID), None)
+    if not book:
+        return jsonify({'error': 'Book not found'}), 404
+
+    if not member:
+        return jsonify({'error': 'Member not found'}), 404
+
+    # Check if the book is already lent out
+    if 'lent_to' in book and book['lent_to'] is not None:
+        return jsonify({'error': 'Book is already lent out'}), 400
+
+    # Update the book status and record the lending member
+    book['lent_to'] = memberID
+    return jsonify({'message': f'Book {ISBN} lent to member {memberID}'}), 200
+
+@app.route('/return', methods=['POST'])
+def returnBook():
+    data = request.get_json()
+    ISBN = data.get('ISBN')
+
+    # Find the book in the library
+    book = next((book for book in library if book.get('ISBN') == ISBN), None)
+
+    if not book:
+        return jsonify({'error': 'Book not found'}), 404
+
+    # Check if the book is lent out
+    if 'lent_to' not in book or book['lent_to'] is None:
+        return jsonify({'error': 'Book is not currently lent out'}), 400
+
+    # Update the book status to indicate it's available again
+    book['lent_to'] = None
+    return jsonify({'message': f'Book {ISBN} has been returned'}), 200

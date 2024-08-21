@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>Books</title>
+{% endblock %}
+
+{% block body %}
+<div>
+<h1>Books</h1>
+<table>
+<tr>
+    <th>ISBN</th>
+    <th>Book Title</th>
+    <th>Author</th>
+    <th>Copies</th>
+    <th>Borrow</th>
+</tr>
+{% for book in books %}
+<tr>
+    <td>{{book.ISBN}}</td>
+    <td>{{book.title}}</td>
+    <td>{{book.author}}</td>
+    <td>{{book.copies}}</td>
+    <td>
+        <a href="/borrow/{{book.id}}">Borrow</a>
+    </td>
+</tr>
+{% endfor %}
+</table>
+
+<div>
+    <form action="/" method="POST">
+        <input type="text" name="book" id="content">
+        <input type="submit" value="type book title">
+    </form>
+</div>
+</div>
+
+{% endblock %}
+
+
